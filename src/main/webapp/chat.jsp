@@ -1,6 +1,6 @@
-<%@ page import="tere.Person" %>
-<%@ page import="tere.Manipulator" %>
-<%@ page import="tere.Messager" %>
+<%@ page import="business_logic.Manipulator" %>
+<%@ page import="business_logic.Person" %>
+<%@ page import="business_logic.Team" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html>
@@ -11,14 +11,17 @@
 <body bgcolor="#3579b9" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
 
 <%
-    String myNameInJSP=request.getParameter("myName");
-    Person person = new Person(myNameInJSP);
-    Manipulator manipulator = Manipulator.getInstance();
-    if(manipulator.checkAbilityToAddPersonToTeam(person) == false){
-        String redirectURL = "indexChat.jsp";
-        response.sendRedirect(redirectURL);
-    }else {
-        manipulator.adderPersonToTeam(person);
+    String myNameInJSP = request.getParameter("myName");
+    if (myNameInJSP != null) {
+        Person person = new Person(myNameInJSP);
+        Manipulator manipulator = Manipulator.getInstance();
+
+        if (manipulator.checkAbilityToAddPersonToTeam(person) == false) {
+            String redirectURL = "indexChat.jsp";
+            response.sendRedirect(redirectURL);
+        } else {
+            Team.getInstance().addPersonToTeam(person);
+        }
     }
 %>
 <script src="http://code.jquery.com/jquery-2.1.1.js"></script>
@@ -27,79 +30,106 @@
 <script language="JavaScript" type="text/javascript" src="/js/sprinkle.js"></script>
 
 <script language="JavaScript" type="text/javascript">
-    var myVar=setInterval(function(){refreshHistory()},1000);
-    var myVar=setInterval(function(){myTimer()},30000);
 
+    var myVar = setInterval(function () {
+        refreshHistory()
+    }, 1000);
+    myTimer();
+    var myVar = setInterval(function () {
+        myTimer()
+    }, 30000);
 
     function refreshHistory() {
         $.ajax({
             url: 'http://localhost:9099/?typeOfRequest=getHistory',
             contentType: "charset=UTF-8"
         })
-                .done(function(response) {
+                .done(function (response) {
                     console.log("--------------------------");
                     // response = {"dateString":"2012-03-06T02:18:25+00:00"}
                     //// "2012-03-06T02:18:25+00:00"
 
-                    document.getElementById("messages").innerHTML=response;
+                    document.getElementById("messages").innerHTML = response;
                     console.log(response);
                 });
         var block = document.getElementById("messages");
         block.scrollTop = block.scrollHeight;
     }
 
-
     function myTimer() {
         $.ajax({
             url: 'http://localhost:9099/?typeOfRequest=getUsersOnline',
             contentType: "charset=UTF-8"
         })
-                .done(function(response) {
+                .done(function (response) {
                     console.log("--------------------------");
                     // response = {"dateString":"2012-03-06T02:18:25+00:00"}
                     //// "2012-03-06T02:18:25+00:00"
 
-                    document.getElementById("contacts").innerHTML=response;
+                    document.getElementById("contacts").innerHTML = response;
                     console.log(response);
                 });
     }
 
-
-    function senderMessage(){
+    function senderMessage() {
         var myUser = document.getElementById("myСontact").innerText;
         var message = document.getElementById("myMessage").value;
         $.ajax({
-            url: 'http://localhost:9099/?typeOfRequest=sendMessage&message=' + message  + "&myUser=" + myUser,
+            url: 'http://localhost:9099/?typeOfRequest=sendMessage&message=' + message + "&myUser=" + myUser,
             contentType: "charset=UTF-8"
         });
         console.log("@@@" + myUser);
         console.log("@@@" + message);
-        document.getElementById("myMessage").value ="";
+        document.getElementById("myMessage").value = "";
+    }
+
+    function logOut() {
+        console.log("I am inside of function logOut");
+        var myUser = document.getElementById("myСontact").innerText;
+
+        $.ajax({
+            url: 'http://localhost:9099/?typeOfRequest=LogOut&myUser=' + myUser,
+            contentType: "charset=UTF-8"
+        })
+                .done(function (response) {
+                    window.location = "indexChat.jsp";
+                });
     }
 </script>
 
-<form>
+
 <table align="center">
     <tr>
-        <td background="http://upload.akusherstvo.ru/image650925.gif" width="1200" height="1098" alt=""align="right" >
-            <div  style="height: 650px; width: 850px; border: 0px solid black; ">
-                <div  style="height: 650px; width: 300px; border: 0px solid black; float: left; ">
-                    <div id="myСontact" style="height: 65px; width: 300px; text-align: center;  border: 0px solid black; "><%=myNameInJSP%></div>
-                    <div id="contacts" style="height: 580px; width: 300px; border: 0px solid black; ">  </div>
+        <td background="http://upload.akusherstvo.ru/image650925.gif" width="1200" height="1098" alt=""
+            align="right">
+            <div style="height: 650px; width: 850px; border: 0px solid black; ">
+                <div style="height: 650px; width: 300px; border: 0px solid black; float: left; ">
+                    <div id="myСontact"
+                         style="height: 33px; width: 300px; text-align: center;  border: 0px solid black; "><%=myNameInJSP%>
+                    </div>
+                    <div style="height: 30px; width: 300px; text-align: center;  border: 0px solid black; ">
+                        <input id="logOut" name="logOut" type="button" value="Log Out" onClick="logOut();">
+                    </div>
+                    <div id="contacts" style="height: 580px; width: 300px; border: 0px solid black; "></div>
                 </div>
-                <div  style="height: 650px; width: 545px; border: 0px solid black; float: right; ">
-                    <div align="left" id="messages" style="max-height:100%;overflow:auto; height: 580px; width: 543px; border: 0px solid black; "> </div>
-                    <div  style="height: 65px; width: 545px; border: 0px solid black; float: left;">
-                        <input align="center" type="text" name="myMessage" style="margin-left: 60px; float:left; " id="myMessage" MAXLENGTH=70" SIZE="45">
-                        <input  align="center" type="button" name="send" style="margin-left: 5px; float:left; " value=" Send message " onClick="senderMessage();">
+                <div style="height: 650px; width: 545px; border: 0px solid black; float: right; ">
+                    <div align="left" id="messages"
+                         style="max-height:100%;overflow:auto; height: 580px; width: 543px; border: 0px solid black; "></div>
+                    <div style="height: 65px; width: 545px; border: 0px solid black; float: left;">
+
+                        <input align="center" type="text" name="myMessage" style="margin-left: 60px; float:left; "
+                               id="myMessage" MAXLENGTH=70" SIZE="45">
+                        <input align="center" type="button" name="send" style="margin-left: 5px; float:left; "
+                               value=" Send message " onClick="senderMessage();">
+
                     </div>
                 </div>
             </div>
-            <div  style=" height: 249px; width: 800px; border: 0px solid black; "></div>
+            <div style=" height: 249px; width: 800px; border: 0px solid black; "></div>
         </td>
     </tr>
 </table>
-</form>
+
 </body>
 </html>
 

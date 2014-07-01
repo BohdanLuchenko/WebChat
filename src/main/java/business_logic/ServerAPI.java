@@ -1,4 +1,4 @@
-package tere;
+package business_logic;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,10 +12,9 @@ import java.io.PrintWriter;
 public class ServerAPI extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         /*PrintWriter out = resp.getWriter();
         out.println("<h1>Bohdan Luchenko</h1>");*/
-
 
 
         String type = req.getParameter("typeOfRequest");
@@ -33,33 +32,28 @@ public class ServerAPI extends HttpServlet {
             resp.setContentType("text/html;charset=UTF-8");
             out.print(myList);
             out.flush();
-        }
+        } else if (type != null && type.equals("LogOut")) {
 
+            String myUser = req.getParameter("myUser");
+            Team team = Team.getInstance();
+            team.removePersonFromTeam(myUser);
 
-        else if(type != null && type.equals("getHistory")) {
+        } else if (type != null && type.equals("getHistory")) {
             Messager messager = Messager.getInstance();
             PrintWriter out = resp.getWriter();
             resp.setContentType("text/html;charset=UTF-8");
             out.print(messager.getMessages());
             out.flush();
-        }
-
-        else if(type != null && type.equals("sendMessage")) {
-
+        } else if (type != null && type.equals("sendMessage")) {
             String message = req.getParameter("message");
             System.out.println(message);
             Messager messager = Messager.getInstance();
             String myUser = req.getParameter("myUser");
-            messager.addMessageByUser(message,myUser);
-
+            messager.addMessageByUser(message, myUser);
+        } else {
+            req.setAttribute("myName", " - Enter another name");
+            req.getRequestDispatcher("indexChat.jsp").forward(req, resp);
         }
-
-
-
-        else{
-                req.setAttribute("myName", " - Enter another name");
-                req.getRequestDispatcher("indexChat.jsp").forward(req, resp);
-            }
-        }
+    }
 
 }

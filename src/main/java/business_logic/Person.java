@@ -1,4 +1,4 @@
-package tere;
+package business_logic;
 
 /**
  * Created by Богдан on 25.06.2014.
@@ -9,7 +9,7 @@ public class Person {
 
     private String name = null;
 
-    public Person(String name){
+    public Person(String name) {
 
         this.name = name;
 
